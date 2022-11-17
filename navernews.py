@@ -62,7 +62,7 @@ class NaverNews (Crawlin):
 
         for keyword in self.data['keywords']:
 
-            addr = []
+            res = []
             print(f"Searching Keyword: {keyword} ...")
             
             page = 0
@@ -71,9 +71,9 @@ class NaverNews (Crawlin):
             while True:
 
                 if last_page == -1:
-                    print(f"Searching page {page+1}...")
+                    print(f"Searching page {page+1}...           \r")
                 else:
-                    print(f"Searching page {page}/{last_page}...")
+                    print(f"Searching page {page}/{last_page}... \r")
 
                 base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort=0&photo=0&field=0&pd=3&ds={self.data['date_from']}&de={self.data['date_to']}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
                 
@@ -84,14 +84,15 @@ class NaverNews (Crawlin):
                     continue
 
                 chicken_soup = BeautifulSoup(src_page.text, 'html.parser')
-                news_tits = chicken_soup.find_all('a', {'class':'news_tit'})
-                sub_tits = chicken_soup.find_all('a', {'class':'sub_tit'})
+                naver_news_urls = chicken_soup.find_all('a', string="네이버뉴스")
 
-                for tit in news_tits:
-                    print(tit.text)
+                for tit in naver_news_urls:
+                    print(tit.parent.parent.parent.find('a')['title'])
 
-                addr += [add['href'] for add in news_tits]
-                addr += [add['href'] for add in sub_tits]
+                for addr in naver_news_urls:
+                    page_crawler = NewsPage(addr)
+                    page_crawler.crawlin()
+                    res.append({page_crawler.data})
 
                 last_page = self.check_last_page(chicken_soup)
 
@@ -101,7 +102,7 @@ class NaverNews (Crawlin):
                 page += 1
 
             print(f"Searching Keyword Completed: {keyword} ({len(addr)} found)")
-            self.data['result'].append({'keyword':keyword, 'addresses':addr})
+            self.data['result'].append({'keyword':keyword, 'page':res})
 
         return addr
 

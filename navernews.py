@@ -3,13 +3,12 @@ import requests as req
 from argparse import ArgumentParser
 from datetime import datetime
 from crawler import Crawlin, argparser
-
-
+from naverarticle import NewsPage
 
 class NaverNews (Crawlin):
 
     def __init__(self, arg, **kwargs) -> None:
-        super().__init__(kwargs)
+        super().__init__(**kwargs)
         self.data['title'] = "Naver News"
         self.data['date_from'] = arg.ds
         self.data['date_to'] = arg.de
@@ -43,15 +42,15 @@ class NaverNews (Crawlin):
                     continue
 
                 chicken_soup = BeautifulSoup(src_page.text, 'html.parser')
-                naver_news_urls = chicken_soup.find_all('a', string="네이버뉴스")
+                naver_news_urls = chicken_soup.find_all('a', "sub_txt",string="네이버뉴스")
 
                 for tit in naver_news_urls:
-                    print(tit.parent.parent.parent.find('a')['title'])
+                    print(tit.parent.parent.find('a', {'class':['news_tit', 'sub_tit']})['title'])
 
                 for addr in naver_news_urls:
-                    page_crawler = NewsPage(addr)
+                    page_crawler = NewsPage(addr['href'])
                     page_crawler.crawlin()
-                    res.append({page_crawler.data})
+                    res.append(page_crawler.data)
 
                 last_page = self.check_last_page(chicken_soup)
 

@@ -4,9 +4,53 @@ from argparse import ArgumentParser
 from datetime import datetime
 from crawler import Crawlin, argparser
 
+class NewsPage (Crawlin):
+
+    insert_index = 39
+
+    def __init__(self, url:str, **kwargs) -> None:
+        super().__init__(**kwargs)
+
+        try:
+            page = req.get(url)
+        except:
+            raise ValueError("Invalid URL")
+
+        self.soup = BeautifulSoup(page, 'html.parser')
+        self.data['url'] = url
+
+        self.data['title'] = self.soup.find('h2', "media_end_head_headline").text
+        self.data['summary'] = self.soup.find('strong', "media_end_summary").text
+        self.data['article'] = self.soup.find('div', id="dic_area").text
+        self.data['author'] = self.soup.find('span', "byline_s").text
+        self.data['date'] = self.soup.find('span', "_ARTICLE_DATE_TIME")['data-date-time']
+        temp = self.soup.find('span', "_ARTICLE_MODIFY_DATE_TIME")
+        if temp :
+            self.data['modify_date'] = temp['data-modify-date-time']
+        self.data['press'] = self.soup.find('img', "media_end_head_top_logo_img")['title']
+        self.data['press_addr'] = self.soup.find('a', "media_end_head_top_logo")['href']
+        self.data['comments'] = {'num':0, 'contents':[]}
+
+    def crawlin(self)->dict: # Crawlin comments
+        
+        comments = []
+        comment_url = self.data['url'][:self.insert_index] + 'comment/' + self.data['url'][self.insert_index:]
+        try:
+            comment_page = req.get(comment_url)
+        except:
+            raise ValueError(f"Not a Naver news page URL : {self.data['url']}")
+
+        soup = BeautifulSoup(comment_page, 'html.parser')
+        # Get comments here
+
+        self.data['comments']['num'] = len(comments)
+        self.data['comments']['contents'] += comments
+        return comments
+
 class NaverNews (Crawlin):
-    def __init__(self, arg) -> None:
-        super().__init__()
+
+    def __init__(self, arg, **kwargs) -> None:
+        super().__init__(kwargs)
         self.data['title'] = "Naver News"
         self.data['date_from'] = arg.ds
         self.data['date_to'] = arg.de

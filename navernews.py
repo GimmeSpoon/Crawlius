@@ -48,7 +48,8 @@ class NaverNews (Crawlin):
                     print(tit.parent.parent.find('a', {'class':['news_tit', 'sub_tit']})['title'])
 
                 for addr in naver_news_urls:
-                    page_crawler = NewsPage(addr['href'])
+                    try: page_crawler = NewsPage(addr['href'])
+                    except: continue
                     page_crawler.crawlin()
                     res.append(page_crawler.data)
 

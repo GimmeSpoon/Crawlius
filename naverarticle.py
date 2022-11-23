@@ -18,6 +18,7 @@ class NewsPage (Crawlin):
 
         time.sleep(1)
 
+        #Pagin Time
         self.data['url'] = url
         self.data['title'] = self.driver.find_element(By.CLASS_NAME, "media_end_head_headline").text
         try: self.data['summary'] = self.driver.find_element(By.CLASS_NAME, "media_end_summary").text
@@ -29,13 +30,13 @@ class NewsPage (Crawlin):
         except: pass
         self.data['press'] = self.driver.find_elements(By.CLASS_NAME, "media_end_head_top_logo_img")[0].get_attribute('title')
         self.data['press_addr'] = self.driver.find_elements(By.CLASS_NAME, "media_end_head_top_logo")[0].get_attribute('href')
-        self.data['comments'] = {'num':0, 'list':[]}
+        self.data['comments'] = {'quantity':0, 'list':[]}
 
         if verbose:
             self.verbose = verbose
             print(self.data['title'])
 
-    def crawlin(self)->None: # Crawlin comments
+    def crawlin(self)->dict: # Crawlin comments
 
         comment_url = self.data['url'].replace('article', 'article/comment')
 
@@ -57,10 +58,14 @@ class NewsPage (Crawlin):
             try: comment_text = comment.find_element(By.CLASS_NAME, "u_cbox_text_wrap").find_element(By.CLASS_NAME, "u_cbox_contents").text
             except: continue
             comment_date = comment.find_element(By.CLASS_NAME, "u_cbox_info_base").find_element(By.CLASS_NAME, "u_cbox_date").get_attribute("data-value")
-            self.data['comments']['num'] += 1
-            self.data['comments']['list'].append({'date':comment_date, 'text':comment_text})
+            comment_recomm = comment.find_element(By.CLASS_NAME, "u_cbox_tool").find_element(By.CLASS_NAME, "u_cbox_recomm_set").find_element(By.CLASS_NAME, "u_cbox_btn_recomm").find_element(By.TAG_NAME, "em").text
+            comment_unrecomm = comment.find_element(By.CLASS_NAME, "u_cbox_tool").find_element(By.CLASS_NAME, "u_cbox_recomm_set").find_element(By.CLASS_NAME, "u_cbox_btn_unrecomm").find_element(By.TAG_NAME, "em").text
+            self.data['comments']['quantity'] += 1
+            self.data['comments']['list'].append({'date':comment_date, 'likes':int(comment_recomm), 'dislikes':int(comment_unrecomm), 'text':comment_text})
             if self.verbose:
                 print(f"ㄴ {comment_text}")
+
+        return self.data
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='News Page (Naver) Parser')

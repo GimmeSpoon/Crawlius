@@ -14,6 +14,8 @@ class NaverNews (Crawlin):
         self.data['date_to'] = arg.de
         self.data['keywords'] = arg.keywords
         self.data['maxpages'] = arg.maxpages
+        self.data['quantity_articles'] = 0
+        self.data['quantity_comments']
         self.data['result'] = []
 
     def crawlin(self)->list:
@@ -50,7 +52,9 @@ class NaverNews (Crawlin):
                 for addr in naver_news_urls:
                     try: page_crawler = NewsPage(addr['href'])
                     except: continue
-                    page_crawler.crawlin()
+                    cn = page_crawler.crawlin()['comments']['quantity']
+                    self.data['quantity_article'] += 1
+                    self.data['quantity_comments'] += cn
                     res.append(page_crawler.data)
 
                 last_page = self.check_last_page(chicken_soup)
@@ -60,10 +64,10 @@ class NaverNews (Crawlin):
 
                 page += 1
 
-            print(f"Searching Keyword Completed: {keyword} ({len(addr)} found)")
+            print(f"Searching Keyword Completed: {keyword} ({len(naver_news_urls)} found)")
             self.data['result'].append({'keyword':keyword, 'page':res})
 
-        return addr
+        return 
 
     def check_last_page(self, soup:BeautifulSoup)->int:
         if soup.find_all('a', {'class':'btn_next'}, href=True):

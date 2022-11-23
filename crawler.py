@@ -46,5 +46,6 @@ def argparser ()->ArgumentParser:
 				description= '"It\'s Crawlin Time." said Crawlius, and he started to crawlin everywhere.',
 			)
 	parser.add_argument('-o', '--output_path', type=str, default=None)
-	parser.add_argument('--ascii', action='store_true')
+	parser.add_argument('--ascii', action='store_true', default=False)
+	parser.add_argument('--indent', type=int, default=None)
 	return parser

@@ -26,11 +26,11 @@ class NewsPage (Crawlin):
         self.data['article'] = self.driver.find_element(By.ID, "dic_area").text
         self.data['author'] = self.driver.find_element(By.CLASS_NAME, "byline_s").text
         self.data['date'] = self.driver.find_element(By.CLASS_NAME, "_ARTICLE_DATE_TIME").get_attribute('data-date-time')
-        try: temp = self.driver.find_element(By.CLASS_NAME, "_ARTICLE_MODIFY_DATE_TIME").get_attribute('data-modify-date-time')
+        try: self.data['date_modify'] = self.driver.find_element(By.CLASS_NAME, "_ARTICLE_MODIFY_DATE_TIME").get_attribute('data-modify-date-time')
         except: pass
         self.data['press'] = self.driver.find_elements(By.CLASS_NAME, "media_end_head_top_logo_img")[0].get_attribute('title')
         self.data['press_addr'] = self.driver.find_elements(By.CLASS_NAME, "media_end_head_top_logo")[0].get_attribute('href')
-        self.data['comments'] = {'quantity':0, 'list':[]}
+        self.data['comments'] = []
 
         if verbose:
             self.verbose = verbose
@@ -60,10 +60,9 @@ class NewsPage (Crawlin):
             comment_date = comment.find_element(By.CLASS_NAME, "u_cbox_info_base").find_element(By.CLASS_NAME, "u_cbox_date").get_attribute("data-value")
             comment_recomm = comment.find_element(By.CLASS_NAME, "u_cbox_tool").find_element(By.CLASS_NAME, "u_cbox_recomm_set").find_element(By.CLASS_NAME, "u_cbox_btn_recomm").find_element(By.TAG_NAME, "em").text
             comment_unrecomm = comment.find_element(By.CLASS_NAME, "u_cbox_tool").find_element(By.CLASS_NAME, "u_cbox_recomm_set").find_element(By.CLASS_NAME, "u_cbox_btn_unrecomm").find_element(By.TAG_NAME, "em").text
-            self.data['comments']['quantity'] += 1
-            self.data['comments']['list'].append({'date':comment_date, 'likes':int(comment_recomm), 'dislikes':int(comment_unrecomm), 'text':comment_text})
+            self.data['comments'].append({'date':comment_date, 'likes':int(comment_recomm), 'dislikes':int(comment_unrecomm), 'text':comment_text})
             if self.verbose:
-                print(f"ㄴ {comment_text}")
+                print(f"ㄴ   {comment_text}")
 
         return self.data
 

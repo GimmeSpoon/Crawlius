@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests as req
 from argparse import ArgumentParser
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from crawler import Crawlin, argparser
 from naverarticle import NewsPage
 
@@ -19,17 +19,19 @@ class NaverNews (Crawlin):
         self.data['result'] = []
         
         if (arg.de - arg.ds).days > 7:
+            d7 = timedelta(days=7)
             ts = arg.ds
-            te = arg.ds.replace(day=arg.ds.day+7)
+            te = arg.ds + d7
+            
             self.date_range = []
             while True:
                 if te > arg.de:
                     te = arg.de
-                    self.date_range.append(ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d'))
+                    self.date_range.append((ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d')))
                     break
-                self.date_range.append(ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d'))
-                ts = ts.replace(day=ts.day+7)
-                te = te.replace(day=te.day+7)                
+                self.date_range.append((ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d')))
+                ts = ts + d7
+                te = te + d7                
         else:
             self.date_range = [(self.data['date_from'], self.data['date_to'])]
 

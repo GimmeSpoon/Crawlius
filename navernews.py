@@ -17,6 +17,8 @@ class NaverNews (Crawlin):
         self.data['total_articles'] = 0
         self.data['total_comments'] = 0
         self.data['result'] = []
+
+        self.sorting = arg.sort
         
         if (arg.de - arg.ds).days > 7:
             d7 = timedelta(days=7)
@@ -55,7 +57,7 @@ class NaverNews (Crawlin):
                     else:
                         print(f"Searching page {page}/{last_page}... \r")
 
-                    base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort=0&photo=0&field=0&pd=3&ds={self.data['date_from']}&de={self.data['date_to']}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
+                    base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort={self.sorting}&photo=0&field=0&pd=3&ds={date_from}&de={date_to}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
                     
                     try:
                         src_page = req.get(base_url)
@@ -104,6 +106,7 @@ def naver_argparser ()->ArgumentParser:
     naverparser.add_argument('de', type=lambda s: datetime.strptime(s, '%Y.%m.%d').date(), help='date when searching ends')
     naverparser.add_argument('-k', '--keywords', type=str, nargs='+')
     naverparser.add_argument('-p', '--maxpages', type=int, default=0)
+    naverparser.add_argument('-s', '--sort', type=int, default=0, choices=range(3))
     return parser
 
 if __name__ == '__main__':

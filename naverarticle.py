@@ -11,6 +11,7 @@ class NewsPage (Crawlin):
 
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
+        options.add_argument('--log-level=3')
         self.driver = webdriver.Chrome(options=options)
         try:
             print(url)

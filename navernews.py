@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests as req
 from argparse import ArgumentParser
-from datetime import datetime
+from datetime import datetime, date
 from crawler import Crawlin, argparser
 from naverarticle import NewsPage
 
@@ -10,59 +10,77 @@ class NaverNews (Crawlin):
     def __init__(self, arg, **kwargs) -> None:
         super().__init__(**kwargs)
         self.data['title'] = "Naver News"
-        self.data['date_from'] = arg.ds
-        self.data['date_to'] = arg.de
+        self.data['date_from'] = arg.ds.strftime('%Y.%m.%d')
+        self.data['date_to'] = arg.de.strftime('%Y.%m.%d')
         self.data['keywords'] = arg.keywords
         self.data['maxpages'] = arg.maxpages
         self.data['total_articles'] = 0
         self.data['total_comments'] = 0
         self.data['result'] = []
+        
+        if (arg.de - arg.ds).days > 7:
+            ts = arg.ds
+            te = arg.ds.replace(day=arg.ds.day+7)
+            self.date_range = []
+            while True:
+                if te > arg.de:
+                    te = arg.de
+                    self.date_range.append(ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d'))
+                    break
+                self.date_range.append(ts.strftime('%Y.%m.%d'), te.strftime('%Y.%m.%d'))
+                ts = ts.replace(day=ts.day+7)
+                te = te.replace(day=te.day+7)                
+        else:
+            self.date_range = [(self.data['date_from'], self.data['date_to'])]
 
     def crawlin(self)->list:
 
         for keyword in self.data['keywords']:
 
             res = []
-            print(f"Searching Keyword: {keyword} ...")
+            print(f"Searching Keyword: {keyword}")
             
             page = 0
             last_page = -1
+            for (date_from, date_to) in self.date_range:
 
-            while True:
+                print(f"Searching from {date_from} to {date_to}...")
 
-                if last_page == -1:
-                    print(f"Searching page {page+1}...           \r")
-                else:
-                    print(f"Searching page {page}/{last_page}... \r")
+                while True:
 
-                base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort=0&photo=0&field=0&pd=3&ds={self.data['date_from']}&de={self.data['date_to']}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
-                
-                try:
-                    src_page = req.get(base_url)
-                except:
-                    print(f"Cannot get HTML page from page {page+1}")
-                    continue
+                    if last_page == -1:
+                        print(f"Searching page {page+1}...           \r")
+                    else:
+                        print(f"Searching page {page}/{last_page}... \r")
 
-                chicken_soup = BeautifulSoup(src_page.text, 'html.parser')
-                naver_news_urls = chicken_soup.find_all('a', "sub_txt",string="네이버뉴스")
+                    base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort=0&photo=0&field=0&pd=3&ds={self.data['date_from']}&de={self.data['date_to']}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
+                    
+                    try:
+                        src_page = req.get(base_url)
+                    except:
+                        print(f"Cannot get HTML page from page {page+1}")
+                        continue
 
-                for tit in naver_news_urls:
-                    print(tit.parent.parent.find('a', {'class':['news_tit', 'sub_tit']})['title'])
+                    chicken_soup = BeautifulSoup(src_page.text, 'html.parser')
+                    naver_news_urls = chicken_soup.find_all('a', "sub_txt",string="네이버뉴스")
 
-                for addr in naver_news_urls:
-                    try: page_crawler = NewsPage(addr['href'])
-                    except: continue
-                    cn = page_crawler.crawlin()['comments'].__len__()
-                    self.data['total_articles'] += 1
-                    self.data['total_comments'] += cn
-                    res.append(page_crawler.data)
+                    for tit in naver_news_urls:
+                        print(tit.parent.parent.find('a', {'class':['news_tit', 'sub_tit']})['title'])
 
-                last_page = self.check_last_page(chicken_soup)
+                    for addr in naver_news_urls:
+                        try: page_crawler = NewsPage(addr['href'])
+                        except: continue
+                        cn = page_crawler.crawlin()['comments'].__len__()
+                        self.data['total_articles'] += 1
+                        self.data['total_comments'] += cn
+                        res.append(page_crawler.data)
 
-                if page == last_page or page == self.data['maxpages'] - 1:
-                    break
+                    last_page = self.check_last_page(chicken_soup)
 
-                page += 1
+                    if page == last_page or page == self.data['maxpages'] - 1:
+                        break
+
+                    page += 1
 
             print(f"Searching Keyword Completed: {keyword} ({len(naver_news_urls)} found)")
             self.data['result'].append({'keyword':keyword, 'page':res})
@@ -80,8 +98,8 @@ def naver_argparser ()->ArgumentParser:
     parser = argparser()
     subparser = parser.add_subparsers(title='Naver News Crawler')
     naverparser = subparser.add_parser('navernews')
-    naverparser.add_argument('ds', type=lambda s: datetime.strptime(s, '%Y.%m.%d').strftime('%Y.%m.%d'), help='date when searching starts')
-    naverparser.add_argument('de', type=lambda s: datetime.strptime(s, '%Y.%m.%d').strftime('%Y.%m.%d'), help='date when searching ends')
+    naverparser.add_argument('ds', type=lambda s: datetime.strptime(s, '%Y.%m.%d').date(), help='date when searching starts')
+    naverparser.add_argument('de', type=lambda s: datetime.strptime(s, '%Y.%m.%d').date(), help='date when searching ends')
     naverparser.add_argument('-k', '--keywords', type=str, nargs='+')
     naverparser.add_argument('-p', '--maxpages', type=int, default=0)
     return parser

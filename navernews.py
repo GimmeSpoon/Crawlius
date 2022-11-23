@@ -74,9 +74,9 @@ class NaverNews (Crawlin):
                     for addr in naver_news_urls:
                         try: page_crawler = NewsPage(addr['href'])
                         except: continue
-                        cn = page_crawler.crawlin()['comments'].__len__()
+                        pd = page_crawler.crawlin()
                         self.data['total_articles'] += 1
-                        self.data['total_comments'] += cn
+                        self.data['total_comments'] += pd['num_comments']
                         res.append(page_crawler.data)
 
                     last_page = self.check_last_page(chicken_soup)

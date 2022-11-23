@@ -23,7 +23,7 @@ class NaverNews (Crawlin):
         if (arg.de - arg.ds).days > 7:
             d7 = timedelta(days=7)
             ts = arg.ds
-            te = arg.ds + d7
+            te = arg.ds + timedelta(days=6)
             
             self.date_range = []
             while True:
@@ -55,7 +55,7 @@ class NaverNews (Crawlin):
                     if last_page == -1:
                         print(f"Searching page {page+1}...           \r")
                     else:
-                        print(f"Searching page {page}/{last_page}... \r")
+                        print(f"Searching page {page+1}/{last_page}... \r")
 
                     base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort={self.sorting}&photo=0&field=0&pd=3&ds={date_from}&de={date_to}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
                     
@@ -81,7 +81,7 @@ class NaverNews (Crawlin):
 
                     last_page = self.check_last_page(chicken_soup)
 
-                    if page == last_page or page == self.data['maxpages'] - 1:
+                    if page == last_page - 1 or page == self.data['maxpages'] - 1:
                         break
 
                     page += 1

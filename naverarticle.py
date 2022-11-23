@@ -9,7 +9,9 @@ class NewsPage (Crawlin):
     def __init__(self, url:str, verbose:bool=True, **kwargs) -> None:
         super().__init__(**kwargs)
 
-        self.driver = webdriver.Chrome()
+        options = webdriver.ChromeOptions()
+        options.add_argument('headless')
+        self.driver = webdriver.Chrome(options=options)
         try:
             print(url)
             self.driver.get(url)

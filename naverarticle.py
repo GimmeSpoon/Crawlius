@@ -11,7 +11,6 @@ class NewsPage (Crawlin):
 
         options = webdriver.ChromeOptions()
         options.add_argument('headless')
-        options.add_argument('--log-level=3')
         self.driver = webdriver.Chrome(options=options)
         try:
             print(url)
@@ -51,7 +50,9 @@ class NewsPage (Crawlin):
 
         time.sleep(1)
 
-        more = self.driver.find_element(By.CLASS_NAME, "u_cbox_paginate")
+        try: more = self.driver.find_element(By.CLASS_NAME, "u_cbox_paginate")
+        except: return self.data
+
         while more.get_attribute('style') != "display: none;":
             try: more.click()
             except: break

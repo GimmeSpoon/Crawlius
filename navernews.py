@@ -9,7 +9,8 @@ class NaverNews (Crawlin):
 
     def __init__(self, arg, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.data['title'] = "Naver News"
+        self.data['title'] = "Crawlius"
+        self.data['time'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.data['date_from'] = arg.ds.strftime('%Y.%m.%d')
         self.data['date_to'] = arg.de.strftime('%Y.%m.%d')
         self.data['keywords'] = arg.keywords
@@ -19,6 +20,7 @@ class NaverNews (Crawlin):
         self.data['result'] = []
 
         self.sorting = arg.sort
+        self.silent = arg.silent
         
         if (arg.de - arg.ds).days > 7:
             d7 = timedelta(days=7)
@@ -44,9 +46,10 @@ class NaverNews (Crawlin):
             res = []
             print(f"Searching Keyword: {keyword}")
             
-            page = 0
-            last_page = -1
             for (date_from, date_to) in self.date_range:
+
+                page = 0
+                last_page = -1
 
                 print(f"Searching from {date_from} to {date_to}...")
 
@@ -55,7 +58,7 @@ class NaverNews (Crawlin):
                     if last_page == -1:
                         print(f"Searching page {page+1}...           \r")
                     else:
-                        print(f"Searching page {page+1}/{last_page}... \r")
+                        print(f"Searching page {page+1}/{last_page+1}... \r")
 
                     base_url = f"https://search.naver.com/search.naver?where=news&sm=tab_pge&query={keyword}&sort={self.sorting}&photo=0&field=0&pd=3&ds={date_from}&de={date_to}&cluster_rank=267&mynews=0&office_type=0&office_section_code=0&news_office_checked=&start={page}1"
                     
@@ -73,7 +76,9 @@ class NaverNews (Crawlin):
 
                     for addr in naver_news_urls:
                         try: page_crawler = NewsPage(addr['href'])
-                        except: continue
+                        except:
+                            print("Not supported HTML doc") 
+                            continue
                         pd = page_crawler.crawlin()
                         self.data['total_articles'] += 1
                         self.data['total_comments'] += pd['num_comments']
@@ -81,7 +86,7 @@ class NaverNews (Crawlin):
 
                     last_page = self.check_last_page(chicken_soup)
 
-                    if page == last_page - 1 or page == self.data['maxpages'] - 1:
+                    if page == last_page or page == self.data['maxpages'] - 1:
                         break
 
                     page += 1
@@ -95,7 +100,7 @@ class NaverNews (Crawlin):
         if soup.find_all('a', {'class':'btn_next'}, href=True):
             return -1
         else:
-            btns = soup.find_all_next('a', {'class':'btn'})
+            btns = soup.find_all('a', {'class':'btn'})
             return int(btns[-1].text) - 1
 
 def naver_argparser ()->ArgumentParser:

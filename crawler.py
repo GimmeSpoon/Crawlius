@@ -48,4 +48,5 @@ def argparser ()->ArgumentParser:
 	parser.add_argument('-o', '--output_path', type=str, default=None)
 	parser.add_argument('--ascii', action='store_true', default=False)
 	parser.add_argument('--indent', type=int, default=None)
+	parser.add_argument('-s', '--silent', action='store_true', default=False)
 	return parser
